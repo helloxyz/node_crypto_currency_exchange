@@ -1,0 +1,11 @@
+{
+  "name": "node_crypto_currency_exchange",
+  "version": "1.0.0",
+  "description": "node module wraper of crypto currency exchange",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "helloxyz",
+  "license": "MIT"
+}
