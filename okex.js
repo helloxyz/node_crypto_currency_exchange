@@ -1,4 +1,3 @@
-const $ = require('jquery')
 const request = require('request')
 var SocksProxyAgent = require('socks-proxy-agent')
 var proxy = 'socks://127.0.0.1:1080'
