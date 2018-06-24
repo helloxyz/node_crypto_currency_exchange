@@ -1,5 +1,6 @@
 var okex = require('./okex')
 var bitmex = require('./bitmex')
+const MD5 = require('./lib/MD5').MD5
 
 exports.BitmexWS = require('./bitmexWS')
 exports.OkexWS = require('./okexWS')
@@ -55,6 +56,25 @@ exports.CancelAllOrder = function (exchange) {
         // okex.GetOrderDepth.apply(okex, args)
     } else if (exchange === 'bitmex') {
         bitmex.CancelAllOrder.apply(bitmex, args)
+    }
+}
+
+exports.GetSign = function (name, params) {
+    if (!params || typeof params !== 'object') return null
+    if (name === 'okex') {
+        var array = []
+        var sign = ''
+        for (var p in params) {
+            if (p !== 'secret_key') {
+                array.push(p)
+            }
+        }
+        array.sort()
+        for (var i = 0; i < array.length; i++) {
+            sign += array[i] + "=" + params[array[i]] + "&"
+        }
+        sign += 'secret_key=' + params.secret_key
+        return MD5(sign)
     }
 }
 

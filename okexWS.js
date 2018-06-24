@@ -11,24 +11,30 @@ var isSocketConnected = false
 var pingTimer
 
 initWebSocket()
+
 function initWebSocket(isReconnect) {
     clearInterval(pingTimer)
-    ws = new WebSocket('wss://real.okex.com:10440/websocket/okexapi', { agent: agent })
+    ws = new WebSocket('wss://real.okex.com:10440/websocket/okexapi', {
+        agent: agent
+    })
     ws.on('open', function () {
         console.log('Okex webSocket connected.')
         isSocketConnected = true
         if (isReconnect) {
             for (var channel of subscribedChannel) {
-                ws.send(JSON.stringify({ 'event': 'addChannel', 'channel': channel }))
+                ws.send(JSON.stringify(channel))
             }
         } else {
             for (var channel of waitingSubscribeChannel) {
-                ws.send(JSON.stringify({ 'event': 'addChannel', 'channel': channel }))
+                // console.log(channel)
+                ws.send(JSON.stringify(channel))
             }
         }
         pingTimer = setInterval(() => {
             if (isSocketConnected) {
-                ws.send(JSON.stringify({ 'event': 'ping' }))
+                ws.send(JSON.stringify({
+                    'event': 'ping'
+                }))
             }
         }, 30 * 1000)
     })
@@ -66,24 +72,36 @@ function initWebSocket(isReconnect) {
     })
 }
 
-function subscribe(channel, parameters, callback) {
-    if (!channel || typeof callback != 'function') {
-        throw new Error('invalid parameters')
+function subscribe(channel, event, parameters, callback) {
+    channel = channel || event
+    if (typeof callback === 'function') {
+        callbackList[channel] = callback[channel] || []
+        callbackList[channel].push(callback)
     }
 
-    callbackList[channel] = callback[channel] || []
-    callbackList[channel].push(callback)
-
-    if (subscribedChannel.indexOf(channel) < 0) {
+    if (!hasChannel(channel, subscribedChannel)) {
         subscribedChannel.push(channel)
+        let subscribeMsg = {
+            'event': event || 'addChannel',
+            'channel': channel,
+            'parameters': parameters || ''
+        }
         if (isSocketConnected) {
-            ws.send(JSON.stringify({ 'event': 'addChannel', 'channel': channel }))
+            ws.send(JSON.stringify(subscribeMsg))
         } else {
-            if (waitingSubscribeChannel.indexOf(channel) < 0) {
-                waitingSubscribeChannel.push(channel)
+            if (!hasChannel(channel, waitingSubscribeChannel)) {
+                waitingSubscribeChannel.push(subscribeMsg)
             }
         }
     }
+}
+
+function hasChannel(name, list) {
+    if (!name || !Array.isArray(list)) return false
+    for (let item of list) {
+        if (item && item.channel === name) return true
+    }
+    return false
 }
 
 exports.subscribe = subscribe

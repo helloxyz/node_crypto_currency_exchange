@@ -1,6 +1,6 @@
 {
   "name": "node_crypto_currency_exchange",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "@helloxyz/node module wraper of crypto currency exchange",
   "main": "index.js",
   "scripts": {
