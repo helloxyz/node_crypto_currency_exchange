@@ -2,35 +2,14 @@ const request = require('request')
 var SocksProxyAgent = require('socks-proxy-agent')
 var proxy = 'socks://127.0.0.1:1080'
 var agent = new SocksProxyAgent(proxy)
+var baseURL = 'https://www.bitmex.com'
 
 exports.GetOrderDepth = GetOrderDepth
-
-function GetOrderDepth(symbol, contract_type, size, merge, callback) {
-    symbol = symbol || 'btc_usd'
-    contract_type = contract_type || 'quarter',
-        size = size || 200
-    merge = merge || 0
-    var url = 'https://www.okex.com/api/v1/future_depth.do?symbol=' + symbol + '&contract_type=' + contract_type + '&size=' + size + '&merge=' + merge
-    request.get({
-        url: url,
-        agent: agent
-    }, function (err, res, body) {
-        if (!err && res.statusCode == 200 && body) {
-            try {
-                var data = JSON.parse(body)
-                callback(null, data)
-            } catch (error) {
-                return callback(error)
-            }
-        }
-        callback(err)
-    })
-}
 
 function GetOrderDepth(symbol, depth, callback) {
     symbol = symbol || 'BTCUSD'
     depth = depth || 200
-    var url = 'https://www.bitmex.com/api/v1/orderBook/L2?symbol=' + symbol + '&depth=' + depth
+    var url = baseURL + '/api/v1/orderBook/L2?symbol=' + symbol + '&depth=' + depth
     request.get({
         url: url,
         agent: agent
@@ -55,5 +34,42 @@ function GetOrderDepth(symbol, depth, callback) {
             }
         }
         callback(err)
+    })
+}
+
+function AddOrder(order, options, callback) {
+    if (!order || !options) return
+    callback = callback || function () { }
+
+
+    var apiKey = options.apiKey
+    var apiSecret = options.apiSecret
+
+    var verb = 'POST',
+        path = '/api/v1/order',
+        expires = new Date().getTime() + (60 * 1000)
+    data.ordType = data.ordType || "Limit"
+    var postBody = JSON.stringify(data);
+
+    var signature = crypto.createHmac('sha256', apiSecret).update(verb + path + expires + postBody).digest('hex');
+
+    var headers = {
+        'content-type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'api-expires': expires,
+        'api-key': apiKey,
+        'api-signature': signature
+    }
+
+    const requestOptions = {
+        headers: headers,
+        url: baseURL + path,
+        method: verb,
+        body: postBody
+    }
+
+    request(requestOptions, function (error, response, body) {
+        callback(error, response, body)
     })
 }

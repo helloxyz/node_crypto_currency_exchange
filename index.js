@@ -10,6 +10,15 @@ exports.GetOrderDepth = function (exchange) {
     }
 }
 
+exports.AddOrder = function (exchange) {
+    var args = handleArgs.apply(this, arguments)
+    if (exchange === 'okex') {
+        // okex.GetOrderDepth.apply(okex, args)
+    } else if (exchange === 'bitmex') {
+        bitmex.AddOrder.apply(bitmex, args)
+    }
+}
+
 function handleArgs() {
     var args = []
     for (var i = 1; i < arguments.length; i++) {
